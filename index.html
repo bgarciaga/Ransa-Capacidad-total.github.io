@@ -140,6 +140,29 @@
     .header-actions, .filters .reset-btn, .search{display:none !important;}
   }
 
+  /* Marca de agua */
+  .watermark{
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    z-index: 9999;
+
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    font-weight:600;
+
+    color:#8a9a90;
+    background:rgba(255,255,255,0.85);
+    border:1px solid var(--line);
+    border-radius:100px;
+    padding:6px 14px;
+
+    box-shadow:var(--shadow);
+    letter-spacing:.01em;
+    text-align:center;
+
+    pointer-events:none;
+  }
   .client-pill{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--ransa-green-dark); background:#eaf6ec; border-radius:100px; padding:4px 12px; margin-top:4px;}
 </style>
 </head>
@@ -289,6 +312,8 @@
   </div>
 
   <footer>RANSA · Dashboard generado a partir del archivo de ocupación · Unisuper</footer>
+
+  <div class="watermark">Developed by the Slotting Department in Guatemala</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -696,9 +721,39 @@ const DATA_URL = './data.json';
     document.getElementById('tableCount').textContent = entries.length + ' registro' + (entries.length===1?'':'s') + ' mostrados';
   }
 
-  // ---------------- Carga de nuevo archivo Excel (mismo formato) ----------------
+  // ---------------- Compartir ----------------
+  async function copiarAlPortapapeles(texto){
+    try{
+      await navigator.clipboard.writeText(texto);
+      return true;
+    }catch(err){
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+      }catch(err2){
+        return false;
+      }
+    }
+  }
 
-  shareBtn.addEventListener('click', async () => {
+  let shareToastTimer = null;
+  function mostrarShareToast(mensaje, ok){
+    const toast = document.getElementById('shareToast');
+    toast.textContent = mensaje;
+    toast.classList.toggle('err', !ok);
+    toast.classList.add('show');
+    clearTimeout(shareToastTimer);
+    shareToastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  document.getElementById('shareBtn').addEventListener('click', async () => {
     const datosCompartir = { title: document.title, text: 'Dashboard de Ocupación · RANSA · ' + dataState.cliente, url: window.location.href };
     try{
       if(navigator.share){ await navigator.share(datosCompartir); return; }
